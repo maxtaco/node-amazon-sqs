@@ -11,8 +11,8 @@ exports.AmazonSQS = class AmazonSQS
 
   #-------------------------------
 
-  constructor : (@accessKeyId, @secretAccessKey, { @awsHost } ) ->
-    @awsHost = 'sqs.us-east-1.amazonaws.com' unless @awsHost
+  constructor : (@accessKeyId, @secretAccessKey, { @awsHost, @owner, @topic} ) ->
+    @awsHost = 'queue.amazonaws.com' unless @awsHost
 
   #-------------------------------
 
@@ -44,7 +44,7 @@ exports.AmazonSQS = class AmazonSQS
   #-------------------------------
 
   call : (query, callback) ->
-    path = '/'
+    path =  [ @owner, @topic ].join "/"
     now = (new Date()).toUTCString()
     body = qs.stringify opts.query
     auth = @makeAuth now
@@ -75,13 +75,14 @@ exports.AmazonSQS = class AmazonSQS
   # * message to be sent to the specified address.
   # * @params {String} email The email address to be verified
   # * @params {Function} callback
-  verifyEmailAddress: (email, cb) ->
+  receiveMessage : (cb) ->
     q =
-      Action: 'VerifyEmailAddress'
+      Action: 'ReceiveMessage'
+      AttributeNAme : "All"
+      MaxNumberOfMessages : 5
+      VisbilityTimeout : 15
       EmailAddress: email
+      Version : "2011-10-01"
     await @call q, defer err, data
-    res = null
-    if not err? and data?
-      res = data.ResponseMetadata
-    cb err, res
-    
+    cb err, data
+

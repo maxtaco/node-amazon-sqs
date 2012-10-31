@@ -1,0 +1,16 @@
+{
+  "name": "amazon-ses",
+  "description": "Simple Amazon SES Mailer",
+  "version": "0.0.3",
+  "author": "Jim Jenkins <jim.jenkins@gmail.com>",
+  "dependencies": {
+    "request": "2.1.1",
+    "underscore": "1.2.1",
+    "xml2js": "0.1.11"
+    "iced-coffee-script" : 
+  },
+  "keywords": ["email", "amazon", "sqs"],
+  "repository": "git://github.com/maxtaco/node-amazon-sqs.git",
+  "main": "lib/main",
+  "engines": { "node": ">= 0.4.1" }
+}

@@ -6,7 +6,6 @@
   "dependencies": {
     "request": "2.1.1",
     "xml2js": "0.1.11"
-    "iced-coffee-script" : "1.3.3"
   },
   "keywords": ["email", "amazon", "sqs"],
   "repository": "git://github.com/maxtaco/node-amazon-sqs.git",

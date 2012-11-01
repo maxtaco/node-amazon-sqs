@@ -7,11 +7,11 @@ url = require 'url'
 
 ##=======================================================================
 
-exports.AmazonSQS = class AmazonSQS
+exports.SQS = class SQS
 
   #-------------------------------
 
-  constructor : (@accessKeyId, @secretAccessKey, { @awsHost, @owner, @topic} ) ->
+  constructor : ({@accessKeyId, @secretAccessKey, @awsHost, @owner, @topic} ) ->
     @awsHost = 'queue.amazonaws.com' unless @awsHost
 
   #-------------------------------
@@ -44,13 +44,14 @@ exports.AmazonSQS = class AmazonSQS
   #-------------------------------
 
   call : (query, callback) ->
-    path =  [ @owner, @topic ].join "/"
+    pathname =  [ @owner, @topic ].join "/"
     now = (new Date()).toUTCString()
-    body = qs.stringify opts.query
+    body = qs.stringify query
     auth = @makeAuth now
     headers = @makeHeaders { now , body, auth }
 
-    uri = url.format { host : @awsHost, path, protocol : "https" }
+    uri = url.format { host : @awsHost, pathname, protocol : "https" }
+    console.log "calling to #{uri}"
     req = 
       method: 'POST'
       uri: uri
@@ -65,23 +66,16 @@ exports.AmazonSQS = class AmazonSQS
       if data.hasOwnProperty 'Error'
         err = new Error data.Error.Message
         
-    opts.callback err, data
+    callback err, data
 
   #-------------------------------
 
-  # A stub --- just to see how to use this library...
-  # 
-  # Verify an email address. This action causes a confirmation email
-  # * message to be sent to the specified address.
-  # * @params {String} email The email address to be verified
-  # * @params {Function} callback
   receiveMessage : (cb) ->
     q =
       Action: 'ReceiveMessage'
       AttributeNAme : "All"
       MaxNumberOfMessages : 5
       VisbilityTimeout : 15
-      EmailAddress: email
       Version : "2011-10-01"
     await @call q, defer err, data
     cb err, data

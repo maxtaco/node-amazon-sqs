@@ -1,0 +1,10 @@
+>>> from boto.sqs.connection import SQSConnection
+>>> conn = SQSConnection("XXX", "YYY", debug=2)
+>>> conn.get_all_queues()
+send: 'GET /?AWSAccessKeyId=XXX&Action=ListQueues&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2012-11-02T14%3A13%3A45Z&Version=2011-10-01&Signature=ZZZZZZZZ%3D HTTP/1.1\r\nHost: queue.amazonaws.com\r\nAccept-Encoding: identity\r\nContent-Length: 0\r\nUser-Agent: Boto/2.6.0 (linux2)\r\n\r\n'
+reply: 'HTTP/1.1 200 OK\r\n'
+header: x-amzn-RequestId: 6c3a82d9-9e94-5c12-83b8-cbd449c8ca9b
+header: Content-Type: text/xml
+header: Content-Length: 336
+[Queue(https://queue.amazonaws.com/230893760634/nutflex-ses-feedback-queue-2)]
+

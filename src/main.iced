@@ -23,7 +23,20 @@ exports.SQS = class SQS
 
   #-------------------------------
 
-  makeAuth : (now) ->
+  makeTime : (o) ->
+    fmt = (d) -> if d < 10 then "0#{d}" else d
+    mon = fmt(o.getUTCMonth() + 1)
+    day = fmt o.getUTCDate()
+    year = o.getUTCFullYear()
+    date = [ year, mon, day].join "-"
+    tparts = for x in [o.getUTCHours(), o.getUTCMinutes(), o.getUTCSeconds()]
+      fmt x
+    time = tparts.join ":"
+    return #{date}T#{time}Z"
+  
+  #-------------------------------
+
+  makeAuth : (now, pairs) ->
     auth_pairs = [ [ "AWSAccessKeyId", @accessKeyId ],
              [ "Algorithm", "HmacSHA256" ],
              [ "Signature", @hmac now ] ]

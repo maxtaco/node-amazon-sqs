@@ -1,0 +1,29 @@
+http://docs.amazonwebservices.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/Query_QueryAuth.html
+
+Following is the string to sign. Notice that you encode the spaces as %20 (and not plus signs) when you form the string to sign.
+
+POST\n
+sqs.us-east-1.amazonaws.com\n
+/queue2\n
+AWSAccessKeyId=<Your AWS Access Key ID>
+&Action=SendMessage
+&Expires=2008-02-10T12%3A00%3A00Z
+&MessageBody=Your%20Message%20Text
+&SignatureMethod=HmacSHA256
+&SignatureVersion=2
+&Version=2009-02-01
+Following is the signed request.
+
+POST /queue2 HTTP/1.1
+Host: sqs.us-east-1.amazonaws.com
+Content-Type: application/x-www-form-urlencoded
+
+Action=SendMessage
+&MessageBody=Your+Message+Text
+&Version=2009-02-01
+&Expires=2008-02-10T12%3A00%3A00Z
+&SignatureVersion=2
+&SignatureMethod=HmacSHA256
+&AWSAccessKeyId=<Your AWS Access Key ID>
+&Signature=URLEncode(Base64Encode(Signature))
+

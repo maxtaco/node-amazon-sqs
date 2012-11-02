@@ -17,14 +17,15 @@ exports.SQS = class SQS
   #-------------------------------
 
   hmac : (str) ->
+    console.log "secret access key: #{@secretAccessKey}"
     hash = crypto.createHmac 'sha256', @secretAccessKey
     return hash.update(str).digest('base64')
 
   #-------------------------------
 
   makeAuth : (now) ->
-    auth_pairs = [ [ "AWSAcessKeyId", @accessKeyId ],
-             [ "Algorithm", "HmacSHA356" ],
+    auth_pairs = [ [ "AWSAccessKeyId", @accessKeyId ],
+             [ "Algorithm", "HmacSHA256" ],
              [ "Signature", @hmac now ] ]
 
     auth = "AWS3-HTTPS " + ( v.join "=" for v in auth_pairs).join ","
@@ -57,6 +58,8 @@ exports.SQS = class SQS
       uri: uri
       headers: headers
       body: body
+
+    console.log "Headers: #{JSON.stringify req}"
 
     await request req, defer err, response, body
     data = null

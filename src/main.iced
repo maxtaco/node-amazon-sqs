@@ -7,18 +7,57 @@ url = require 'url'
 
 ##=======================================================================
 
-exports.SQS = class SQS
+exports.Connection = class Connection
 
   #-------------------------------
 
-  constructor : ({@accessKeyId, @secretAccessKey, @awsHost, @owner, @topic} ) ->
+  constructor : ({@accessKeyId, @secretAccessKey, @awsHost}) ->
     @awsHost = 'queue.amazonaws.com' unless @awsHost
 
   #-------------------------------
 
+  createTopic : ({owner, topic}) ->
+    return new Topic { conn : @, owner, topic }
+
+##=======================================================================
+
+class Topic 
+
+  #-------------------------------
+
+  constructor : ({@conn, @owner, @topic}) ->
+
+  #-------------------------------
+
+  makeCall : (command) ->
+    return new Call { topic : @, command }
+    
+  #-------------------------------
+
+  receiveMessage : (cb) ->
+    q =
+      Action: 'ReceiveMessage'
+      AttributeNAme : "All"
+      MaxNumberOfMessages : 5
+      VisbilityTimeout : 15
+      Version : "2011-10-01"
+    call = @makeCall q
+    await call.run defer err, res
+    cb err, res
+  
+##=======================================================================
+
+class Call
+  
+  #-------------------------------
+
+  constructor : (@topic, @command) ->
+ 
+  #-------------------------------
+
   hmac : (str) ->
     console.log "secret access key: #{@secretAccessKey}"
-    hash = crypto.createHmac 'sha256', @secretAccessKey
+    hash = crypto.createHmac 'sha256', @topic.conn.secretAccessKey
     return hash.update(str).digest('base64')
 
   #-------------------------------
@@ -57,15 +96,20 @@ exports.SQS = class SQS
  
   #-------------------------------
 
-  call : (query, callback) ->
-    pathname =  [ @owner, @topic ].join "/"
+  run : (cb ) ->
+    pathname =  [ @topic.owner, @topic.owner ].join "/"
     now = (new Date()).toUTCString()
-    body = qs.stringify query
+    body = qs.stringify @command
     auth = @makeAuth now
     headers = @makeHeaders { now , body, auth }
 
-    uri = url.format { host : @awsHost, pathname, protocol : "https" }
+    uri = url.format
+      host : @topic.conn.awsHost,
+      pathname,
+      protocol : "https"
+      
     console.log "calling to #{uri}"
+    
     req = 
       method: 'POST'
       uri: uri
@@ -82,17 +126,8 @@ exports.SQS = class SQS
       if data.hasOwnProperty 'Error'
         err = new Error data.Error.Message
         
-    callback err, data
+    cb err, data
 
   #-------------------------------
 
-  receiveMessage : (cb) ->
-    q =
-      Action: 'ReceiveMessage'
-      AttributeNAme : "All"
-      MaxNumberOfMessages : 5
-      VisbilityTimeout : 15
-      Version : "2011-10-01"
-    await @call q, defer err, data
-    cb err, data
-
+##=======================================================================

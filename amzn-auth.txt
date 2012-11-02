@@ -27,3 +27,40 @@ Action=SendMessage
 &AWSAccessKeyId=<Your AWS Access Key ID>
 &Signature=URLEncode(Base64Encode(Signature))
 
+
+Example SetQueueAttributes Request
+
+https://sqs.us-east-1.amazonaws.com/770098461991/queue2
+?Action=SetQueueAttributes
+&Attribute.Name=VisibilityTimeout
+&Attribute.Value=90
+&Version=2009-02-01
+&Expires=2008-02-10T12%3A00%3A00Z
+&SignatureVersion=2
+&SignatureMethod=HmacSHA256
+&AWSAccessKeyId=<Your AWS Access Key ID>
+Following is the string to sign.
+
+GET\n
+sqs.us-east-1.amazonaws.com\n
+/770098461991/queue2\n
+AWSAccessKeyId=<Your AWS Access Key ID>
+&Action=SetQueueAttributes
+&Attribute.Name=VisibilityTimeout
+&Attribute.Value=90
+&Expires=2008-02-10T12%3A00%3A00Z
+&SignatureMethod=HmacSHA256
+&SignatureVersion=2
+&Version=2009-02-01
+Following is the signed request.
+
+https://sqs.us-east-1.amazonaws.com/770098461991/queue2
+?Action=SetQueueAttributes
+&Attribute.Name=VisibilityTimeout
+&Attribute.Value=35
+&Version=2009-02-01
+&Expires=2008-02-10T12%3A00%3A00Z
+&Signature=<URLEncode(Base64Encode(Signature))>
+&SignatureVersion=2
+&SignatureMethod=HmacSHA256
+&AWSAccessKeyId=<Your AWS Access Key ID>

@@ -29,7 +29,7 @@ class Topic
 
   #-------------------------------
 
-  makeCall : (command) ->
+  makeRestCall : (command) ->
     return new Call { topic : @, command }
     
   #-------------------------------
@@ -41,13 +41,13 @@ class Topic
       MaxNumberOfMessages : 5
       VisbilityTimeout : 15
       Version : "2011-10-01"
-    call = @makeCall q
-    await call.run defer err, res
+    rc = @makeRestCall q
+    await rc.run defer err, res
     cb err, res
   
 ##=======================================================================
 
-class Call
+class RestCall
   
   #-------------------------------
 
@@ -96,7 +96,7 @@ class Call
  
   #-------------------------------
 
-  run : (cb ) ->
+  run : (cb) ->
     pathname =  [ @topic.owner, @topic.owner ].join "/"
     now = (new Date()).toUTCString()
     body = qs.stringify @command

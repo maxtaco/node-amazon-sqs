@@ -52,6 +52,7 @@ class RestCall
   #-------------------------------
 
   constructor : (@topic, @command) ->
+    @version = "2011-10-01"
  
   #-------------------------------
 
@@ -96,9 +97,29 @@ class RestCall
  
   #-------------------------------
 
+  makeParamList : () ->
+    boiler_plate =
+      SignatureMethod : "HmacSHA256"
+      SignatureVersion : 2
+      Timestamp : @now
+      Version : @version
+      AWSAccessKey : @topic.conn.accessKeyId
+    @paramList = []
+    listify = (d) =>
+      for k,v of d
+        @paramList.push [ qs.escape k, qs.escape v]
+    listify boiler_plate
+    listify @command
+    @paramList.sort()
+  
+  #-------------------------------
+
   run : (cb) ->
-    pathname =  [ @topic.owner, @topic.owner ].join "/"
-    now = (new Date()).toUTCString()
+    @pathname =  [ @topic.owner, @topic.owner ].join "/"
+    @now = @makeTime new Date
+    @makeParamList()
+
+    
     body = qs.stringify @command
     auth = @makeAuth now
     headers = @makeHeaders { now , body, auth }

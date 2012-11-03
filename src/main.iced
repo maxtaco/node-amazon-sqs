@@ -29,35 +29,34 @@ class Topic
 
   #-------------------------------
 
-  makeRestCall : (command) ->
-    return new Call { topic : @, command }
+  makeAuthenticatedRestCall : (command) ->
+    return new AuthenticatedRestCall { topic : @, command }
     
   #-------------------------------
 
   receiveMessage : (cb) ->
     q =
       Action: 'ReceiveMessage'
-      AttributeNAme : "All"
+      AttributeName : "All"
       MaxNumberOfMessages : 5
       VisbilityTimeout : 15
-      Version : "2011-10-01"
-    rc = @makeRestCall q
-    await rc.run defer err, res
+    arc = @makeAuthenticatedRestCall q
+    await arc.run defer err, res
     cb err, res
   
 ##=======================================================================
 
-class RestCall
+class AuthenticatedRestCall
   
   #-------------------------------
 
-  constructor : (@topic, @command) ->
+  constructor : ({@topic, @command}) ->
     @version = "2011-10-01"
+    @search = ""
  
   #-------------------------------
 
   hmac : (str) ->
-    console.log "secret access key: #{@secretAccessKey}"
     hash = crypto.createHmac 'sha256', @topic.conn.secretAccessKey
     return hash.update(str).digest('base64')
 
@@ -72,72 +71,61 @@ class RestCall
     tparts = for x in [o.getUTCHours(), o.getUTCMinutes(), o.getUTCSeconds()]
       fmt x
     time = tparts.join ":"
-    return #{date}T#{time}Z"
+    return "#{date}T#{time}Z"
   
   #-------------------------------
 
-  makeAuth : (now, pairs) ->
-    auth_pairs = [ [ "AWSAccessKeyId", @accessKeyId ],
-             [ "Algorithm", "HmacSHA256" ],
-             [ "Signature", @hmac now ] ]
-
-    auth = "AWS3-HTTPS " + ( v.join "=" for v in auth_pairs).join ","
-    return auth
+  toList : (d) -> out = ([ qs.escape(k), qs.escape(v) ] for k,v of d)
 
   #-------------------------------
 
-  makeHeaders : ({now, body, auth}) ->
-    headers = 
-      'Date' : now
-      'Host': @awsHost
-      'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
-      'Content-Length': body.length
-      'X-Amzn-Authorization': auth
-    return headers
- 
+  addParams : (list) ->
+    s = (pair.join "=" for pair in list).join "&"
+    @search += "&" if @search.length
+    @search += s
+    
   #-------------------------------
-
-  makeParamList : () ->
+  
+  makeParams : () ->
     boiler_plate =
       SignatureMethod : "HmacSHA256"
       SignatureVersion : 2
       Timestamp : @now
       Version : @version
-      AWSAccessKey : @topic.conn.accessKeyId
-    @paramList = []
-    listify = (d) =>
-      for k,v of d
-        @paramList.push [ qs.escape k, qs.escape v]
-    listify boiler_plate
-    listify @command
-    @paramList.sort()
+      AWSAccessKeyId : @topic.conn.accessKeyId
+    list = (@toList boiler_plate).concat @toList @command
+    list.sort()
+    @addParams list
   
   #-------------------------------
 
+  signCall : () ->
+    input =  [
+      @method
+      @host
+      @pathname
+      @search
+      ].join "\n"
+    sig = @hmac input
+    @addParams @toList { Signature : sig }
+   
+  #-------------------------------
+
   run : (cb) ->
-    @pathname =  [ @topic.owner, @topic.owner ].join "/"
-    @now = @makeTime new Date
-    @makeParamList()
-
+    @method = "GET"
+    @protocol = "https"
+    @host = @topic.conn.awsHost
+    @pathname =  [ '', @topic.owner, @topic.topic ].join "/"
+    @now = @makeTime new Date()
     
-    body = qs.stringify @command
-    auth = @makeAuth now
-    headers = @makeHeaders { now , body, auth }
+    @makeParams()
+    @signCall()
 
-    uri = url.format
-      host : @topic.conn.awsHost,
-      pathname,
-      protocol : "https"
+    uri = url.format { @host, @pathname, @protocol, @search }
       
-    console.log "calling to #{uri}"
-    
     req = 
-      method: 'POST'
+      method: @method
       uri: uri
-      headers: headers
-      body: body
-
-    console.log "Headers: #{JSON.stringify req}"
 
     await request req, defer err, response, body
     data = null

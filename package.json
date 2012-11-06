@@ -1,7 +1,7 @@
 {
   "name": "amazon-sqs",
   "description": "Simple Amazon SQS Manipulator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Max Krohn <themax@gmail.com>",
   "dependencies": {
     "request": "2.1.1",

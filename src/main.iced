@@ -34,15 +34,27 @@ class Topic
     
   #-------------------------------
 
+  _doCall : (q, cb) ->
+    arc = @makeAuthenticatedRestCall q
+    arc.run cb
+   
+  #-------------------------------
+
   receiveMessage : (cb) ->
     q =
       Action: 'ReceiveMessage'
       AttributeName : "All"
       MaxNumberOfMessages : 5
       VisbilityTimeout : 15
-    arc = @makeAuthenticatedRestCall q
-    await arc.run defer err, res
-    cb err, res
+    @_doCall q, cb
+    
+  #-------------------------------
+
+  deleteMessage : (rh, cb) ->
+    q =
+      Action: 'DeleteMessage'
+      ReceiptHandle : rh
+    @_doCall q, cb
   
 ##=======================================================================
 

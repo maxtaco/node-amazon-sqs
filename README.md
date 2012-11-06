@@ -4,6 +4,7 @@ node-amazon-sqs
 Node interface to Amazon SQS, supports the following actions:
 
 * ReceiveMessages
+* DeleteMessage
 
 ## Install
 
@@ -32,4 +33,6 @@ topic = conn.createTopic
 
 topic.receiveMessage (err, data) ->
   console.log "done! Err=#{JSON.stringify err}; data=#{JSON.stringify data}"
+topic.deleteMessage myReceiptHandle (err) ->
+  console.log "done! Err=#{JSON.stringify err}"
 ```
